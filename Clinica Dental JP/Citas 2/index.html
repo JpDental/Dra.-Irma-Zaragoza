@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reserva de Citas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2B5D3A 0%, #4A90E2 100%);
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .form-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            font-size: 20px;
+            color: #104E8B;
+            filter: brightness(1.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-row.two-cols {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2B5D3A;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.1);
+        }
+
+        .form-input.has-icon {
+            padding-left: 45px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #ff6b6b;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        /* Calendar Button Style */
+        .calendar-trigger {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fafafa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            color: #6b7280;
+        }
+
+        .calendar-trigger:hover {
+            border-color: #2B5D3A;
+            background: white;
+        }
+
+        .calendar-trigger.selected {
+            background: white;
+            border-color: #2B5D3A;
+            color: #2B5D3A;
+            font-weight: 500;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Modal Calendar */
+        .calendar-modal {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #2B5D3A 0%, #4A90E2 100%);
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .calendar-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .calendar-body {
+            padding: 25px;
+        }
+
+        /* Month Navigation */
+        .month-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .month-navigation button {
+            background: linear-gradient(135deg, #2B5D3A 0%, #4A90E2 100%);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .month-navigation button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(43, 93, 58, 0.3);
+        }
+
+        .month-navigation button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .current-month {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 10px 0;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .calendar-day.empty {
+            cursor: default;
+            opacity: 0;
+        }
+
+        .calendar-day.past {
+            color: #d1d5db;
+            cursor: not-allowed;
+            background: #f9fafb;
+        }
+
+        .calendar-day.weekend {
+            background: #fee;
+            color: #dc2626;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.available {
+            background: #f0fdf4;
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+
+        .calendar-day.available:hover {
+            background: #dcfce7;
+            transform: scale(1.05);
+            border-color: #15803d;
+        }
+
+        .calendar-day.partial {
+            background: #fffbeb;
+            color: #d97706;
+            border-color: #fed7aa;
+        }
+
+        .calendar-day.partial:hover {
+            background: #fef3c7;
+            transform: scale(1.05);
+            border-color: #d97706;
+        }
+
+        .calendar-day.busy {
+            background: #fef2f2;
+            color: #dc2626;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.selected {
+            background: linear-gradient(135deg, #2B5D3A 0%, #4A90E2 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(43, 93, 58, 0.3);
+        }
+
+        .calendar-day.loading {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Loading Indicator */
+        .calendar-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .calendar-loading.active {
+            display: block;
+        }
+
+        .calendar-loading i {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Legend */
+        .calendar-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            margin-right: 8px;
+            border: 2px solid transparent;
+        }
+
+        .legend-color.available {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .legend-color.partial {
+            background: #fffbeb;
+            border-color: #fed7aa;
+        }
+
+        .legend-color.busy {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .legend-color.weekend {
+            background: #fee;
+            border-color: #fca5a5;
+        }
+
+        /* Time Selector */
+        .time-selector {
+            position: relative;
+        }
+
+        .time-display {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fafafa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .time-display:hover {
+            border-color: #2B5D3A;
+            background: white;
+        }
+
+        .time-display.active {
+            border-color: #2B5D3A;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.1);
+        }
+
+        .time-display:disabled,
+        .time-display.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .time-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-height: 280px;
+            overflow-y: auto;
+            margin-top: 5px;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .time-dropdown.open {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .time-dropdown::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .time-dropdown::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+
+        .time-dropdown::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #2B5D3A 0%, #4A90E2 100%);
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .time-dropdown::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #1e4329 0%, #3576cb 100%);
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            padding: 10px;
+        }
+
+        .time-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            border-radius: 6px;
+            margin: 2px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+
+        .time-option:hover {
+            background: linear-gradient(90deg, #f0f9ff 0%, #ecfdf5 100%);
+            border-color: #2B5D3A;
+        }
+
+        .time-option.selected {
+            background: linear-gradient(135deg, #2B5D3A 0%, #4A90E2 100%);
+            color: white;
+            border-color: #2B5D3A;
+            transform: scale(0.95);
+        }
+
+        .time-option.occupied {
+            background: #fef2f2;
+            color: #dc2626;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .period-label {
+            grid-column: 1 / -1;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 5px 0;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Status Alert */
+        .status-alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .status-alert.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-alert i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .status-alert.loading {
+            background: linear-gradient(90deg, #dbeafe 0%, #f0f9ff 100%);
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .status-alert.success {
+            background: linear-gradient(90deg, #dcfce7 0%, #f0fdf4 100%);
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-alert.warning {
+            background: linear-gradient(90deg, #fef3c7 0%, #fffbeb 100%);
+            color: #d97706;
+            border: 1px solid #fed7aa;
+        }
+
+        .status-alert.error {
+            background: linear-gradient(90deg, #fecaca 0%, #fef2f2 100%);
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg,
+                    #1a3a2e 0%,
+                    #2d5a4a 25%,
+                    #4a7c8a 50%,
+                    #7ca6c8 75%,
+                    #b8d4e8 100%);
+            background-size: 300% 300%;
+            animation: chameleonMove 6s ease-in-out infinite;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(26, 58, 46, 0.4);
+            animation-duration: 3s;
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+
+        @keyframes chameleonMove {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            25% {
+                background-position: 50% 0%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            75% {
+                background-position: 50% 100%;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row.two-cols {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 10px;
+            }
+
+            .form-section {
+                padding: 20px;
+            }
+
+            .time-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .calendar-modal {
+                max-width: 95%;
+            }
+
+            .calendar-legend {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-calendar-alt"></i> Reserva tu Cita</h1>
+            <p>Sistema profesional de agendamiento</p>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-user-circle"></i>
+                Información Personal
+            </div>
+
+            <div class="form-row two-cols">
+                <div class="form-group">
+                    <label class="form-label" for="cliente">Nombre Completo *</label>
+                    <input type="text" id="cliente" class="form-input" placeholder="Tu nombre completo">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="telefono">Teléfono *</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input type="tel" id="telefono" class="form-input has-icon" placeholder="1234567890">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="correo">Correo Electrónico *</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="correo" class="form-input has-icon" placeholder="tu@email.com">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <i class="fas fa-clock"></i>
+                Fecha y Hora
+            </div>
+
+            <div class="form-row two-cols">
+                <div class="form-group">
+                    <label class="form-label">Fecha *</label>
+                    <button type="button" class="calendar-trigger" id="calendarTrigger">
+                        <span id="selectedDateText">Selecciona una fecha</span>
+                        <i class="fas fa-calendar-alt"></i>
+                    </button>
+                    <input type="hidden" id="fecha">
+                    <div class="form-help">Haz clic para ver disponibilidad</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hora *</label>
+                    <div class="time-selector">
+                        <div class="time-display disabled" id="timeDisplay">
+                            <span id="selectedTime">Primero selecciona fecha</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="time-dropdown" id="timeDropdown">
+                            <div class="time-grid" id="timeGrid"></div>
+                        </div>
+                    </div>
+                    <div class="form-help">9:00 AM - 6:00 PM</div>
+                </div>
+            </div>
+
+            <div class="status-alert" id="statusAlert">
+                <i id="statusIcon"></i>
+                <span id="statusMessage"></span>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+                <span id="btnText">Reservar Cita</span>
+            </button>
+        </div>
+
+        <div class="footer">
+            Sistema seguro de reservas • Confirmación automática por email
+        </div>
+    </div>
+
+    <!-- Modal Calendar -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="calendar-modal">
+            <div class="calendar-header">
+                <h3><i class="fas fa-calendar-check"></i> Selecciona una Fecha</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="calendar-body">
+                <div class="month-navigation">
+                    <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                    <div class="current-month" id="currentMonth">Enero 2024</div>
+                    <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                <div class="calendar-loading" id="calendarLoading">
+                    <i class="fas fa-spinner loading-spinner"></i>
+                    <p>Cargando disponibilidad...</p>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Days headers -->
+                    <div class="day-header">Dom</div>
+                    <div class="day-header">Lun</div>
+                    <div class="day-header">Mar</div>
+                    <div class="day-header">Mié</div>
+                    <div class="day-header">Jue</div>
+                    <div class="day-header">Vie</div>
+                    <div class="day-header">Sáb</div>
+                    <!-- Calendar days will be inserted here -->
+                </div>
+
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-color available"></div>
+                        <span>Disponible</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color partial"></div>
+                        <span>Parcial</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color busy"></div>
+                        <span>Ocupado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color weekend"></div>
+                        <span>Fin de semana</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WEBHOOK URLs - REEMPLAZA CON TUS URLs REALES
+        const WEBHOOK_RESERVA = 'https://hook.us2.make.com/o16fjhah3hsvmnlqka3nlbjtzt1ygiyn';
+        const WEBHOOK_CONSULTA = 'https://hook.us2.make.com/t6jc6qtdcsolarq2ahqwitamrxrjashx'; // Reemplazar con nuevo webhook
+
+        let formData = {
+            cliente: '',
+            telefono: '',
+            correo: '',
+            fecha: '',
+            hora: ''
+        };
+
+        let currentMonth = new Date();
+        let selectedDate = null;
+        let availabilityCache = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            initEventListeners();
+            renderCalendar();
+        });
+
+        function initEventListeners() {
+            // Personal info inputs
+            document.getElementById('cliente').addEventListener('input', (e) => {
+                formData.cliente = e.target.value;
+            });
+
+            document.getElementById('telefono').addEventListener('input', (e) => {
+                const formatted = formatPhone(e.target.value);
+                e.target.value = formatted;
+                formData.telefono = formatted.replace(/\D/g, ''); // Guarda solo números sin guiones
+            });
+
+            document.getElementById('correo').addEventListener('input', (e) => {
+                formData.correo = e.target.value;
+            });
+
+            // Calendar modal
+            document.getElementById('calendarTrigger').addEventListener('click', openCalendarModal);
+            document.getElementById('closeModal').addEventListener('click', closeCalendarModal);
+            document.getElementById('modalOverlay').addEventListener('click', (e) => {
+                if (e.target.id === 'modalOverlay') closeCalendarModal();
+            });
+
+            // Month navigation
+            document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+            document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+            // Time selector
+            document.getElementById('timeDisplay').addEventListener('click', toggleTimeDropdown);
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.time-selector')) {
+                    closeTimeDropdown();
+                }
+            });
+        }
+
+        // Calendar Modal Functions
+        function openCalendarModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            renderCalendar();
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function changeMonth(direction) {
+            currentMonth.setMonth(currentMonth.getMonth() + direction);
+            renderCalendar();
+        }
+
+        async function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            // Update header
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Disable prev button if current month
+            const today = new Date();
+            const isPastMonth = year < today.getFullYear() ||
+                (year === today.getFullYear() && month < today.getMonth());
+            document.getElementById('prevMonth').disabled = isPastMonth;
+
+            // Disable next button if beyond 2026
+            const isFutureLimit = year > 2026 || (year === 2026 && month > 11);
+            document.getElementById('nextMonth').disabled = isFutureLimit;
+
+            // Clear calendar
+            const grid = document.getElementById('calendarGrid');
+            const headers = grid.querySelectorAll('.day-header');
+            grid.innerHTML = '';
+            headers.forEach(h => grid.appendChild(h));
+
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Show loading
+            document.getElementById('calendarLoading').classList.add('active');
+
+            // Add empty cells for days before month start
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day empty';
+                grid.appendChild(emptyDay);
+            }
+
+            // Load availability for the month
+            await loadMonthAvailability(year, month);
+
+            // Hide loading
+            document.getElementById('calendarLoading').classList.remove('active');
+
+            // Add days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                const dateObj = new Date(year, month, day);
+                const dateString = formatDateToISO(dateObj);
+
+                // Check if past
+                const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                if (dateObj < todayStart) {
+                    dayElement.classList.add('past');
+                }
+                // Check if weekend
+                else if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+                    dayElement.classList.add('weekend');
+                }
+                // Check availability
+                else {
+                    const availability = availabilityCache[dateString];
+                    if (availability) {
+                        if (availability.status === 'available') {
+                            dayElement.classList.add('available');
+                        } else if (availability.status === 'partial') {
+                            dayElement.classList.add('partial');
+                        } else {
+                            dayElement.classList.add('busy');
+                        }
+
+                        // Add click handler for available dates
+                        if (availability.status !== 'busy') {
+                            dayElement.addEventListener('click', () => selectDate(dateObj, availability));
+                        }
+                    } else {
+                        dayElement.classList.add('available');
+                        dayElement.addEventListener('click', () => selectDate(dateObj, null));
+                    }
+                }
+
+                // Highlight selected date
+                if (selectedDate &&
+                    dateObj.getDate() === selectedDate.getDate() &&
+                    dateObj.getMonth() === selectedDate.getMonth() &&
+                    dateObj.getFullYear() === selectedDate.getFullYear()) {
+                    dayElement.classList.add('selected');
+                }
+
+                grid.appendChild(dayElement);
+            }
+        }
+
+        async function loadMonthAvailability(year, month) {
+            // Create array of dates to check
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const datesToCheck = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(year, month, day);
+                const dayOfWeek = dateObj.getDay();
+
+                // Skip weekends and past dates
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (dateObj >= today && dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    datesToCheck.push(formatDateToISO(dateObj));
+                }
+            }
+
+            // Check availability for all dates
+            for (const dateString of datesToCheck) {
+                if (!availabilityCache[dateString]) {
+                    await checkDateAvailability(dateString);
+                }
+            }
+        }
+
+        async function checkDateAvailability(dateString) {
+            try {
+                const response = await fetch(WEBHOOK_CONSULTA, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'check_availability',
+                        date: dateString
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    availabilityCache[dateString] = {
+                        status: data.status || 'available',
+                        availableSlots: data.availableSlots || [],
+                        occupiedSlots: data.occupiedSlots || []
+                    };
+                } else {
+                    // Default to available if check fails
+                    availabilityCache[dateString] = {
+                        status: 'available',
+                        availableSlots: generateDefaultSlots(),
+                        occupiedSlots: []
+                    };
+                }
+            } catch (error) {
+                console.error('Error checking availability:', error);
+                availabilityCache[dateString] = {
+                    status: 'available',
+                    availableSlots: generateDefaultSlots(),
+                    occupiedSlots: []
+                };
+            }
+        }
+
+        function selectDate(dateObj, availability) {
+            selectedDate = dateObj;
+            formData.fecha = formatDateToISO(dateObj);
+
+            // Update trigger button
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateText = dateObj.toLocaleDateString('es-MX', options);
+            document.getElementById('selectedDateText').textContent = dateText;
+            document.getElementById('calendarTrigger').classList.add('selected');
+            document.getElementById('fecha').value = formData.fecha;
+
+            // Enable time selector
+            const timeDisplay = document.getElementById('timeDisplay');
+            timeDisplay.classList.remove('disabled');
+            timeDisplay.querySelector('span').textContent = 'Selecciona una hora';
+
+            // Load available times
+            loadAvailableTimes(availability);
+
+            // Close modal
+            closeCalendarModal();
+
+            // Reset time selection
+            formData.hora = '';
+        }
+
+        function loadAvailableTimes(availability) {
+            const timeGrid = document.getElementById('timeGrid');
+            timeGrid.innerHTML = '';
+
+            const slots = availability?.availableSlots || generateDefaultSlots();
+            const occupiedSlots = availability?.occupiedSlots || [];
+
+            // Morning slots
+            const morningSlots = slots.filter(s => {
+                const hour = parseInt(s.split(':')[0]);
+                return hour < 12;
+            });
+
+            if (morningSlots.length > 0) {
+                const morningLabel = document.createElement('div');
+                morningLabel.className = 'period-label';
+                morningLabel.textContent = 'Mañana';
+                timeGrid.appendChild(morningLabel);
+
+                morningSlots.forEach(slot => {
+                    addTimeOption(timeGrid, slot, occupiedSlots);
+                });
+            }
+
+            // Afternoon slots
+            const afternoonSlots = slots.filter(s => {
+                const hour = parseInt(s.split(':')[0]);
+                return hour >= 12;
+            });
+
+            if (afternoonSlots.length > 0) {
+                const afternoonLabel = document.createElement('div');
+                afternoonLabel.className = 'period-label';
+                afternoonLabel.textContent = 'Tarde';
+                timeGrid.appendChild(afternoonLabel);
+
+                afternoonSlots.forEach(slot => {
+                    addTimeOption(timeGrid, slot, occupiedSlots);
+                });
+            }
+        }
+
+        function addTimeOption(container, time, occupiedSlots) {
+            const option = document.createElement('div');
+            option.className = 'time-option';
+            option.textContent = time;
+
+            if (occupiedSlots.includes(time)) {
+                option.classList.add('occupied');
+            } else {
+                option.addEventListener('click', () => selectTime(time));
+            }
+
+            container.appendChild(option);
+        }
+
+        function selectTime(time) {
+            formData.hora = time;
+            document.getElementById('selectedTime').textContent = time;
+
+            // Update selected state
+            document.querySelectorAll('.time-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+
+            closeTimeDropdown();
+        }
+
+        function toggleTimeDropdown() {
+            const display = document.getElementById('timeDisplay');
+            if (display.classList.contains('disabled')) return;
+
+            const dropdown = document.getElementById('timeDropdown');
+            const isOpen = dropdown.classList.contains('open');
+
+            if (isOpen) {
+                closeTimeDropdown();
+            } else {
+                display.classList.add('active');
+                dropdown.classList.add('open');
+            }
+        }
+
+        function closeTimeDropdown() {
+            document.getElementById('timeDisplay').classList.remove('active');
+            document.getElementById('timeDropdown').classList.remove('open');
+        }
+
+        function generateDefaultSlots() {
+            const slots = [];
+            for (let hour = 9; hour <= 17; hour++) {
+                slots.push(`${hour.toString().padStart(2, '0')}:00`);
+                if (hour < 17) {
+                    slots.push(`${hour.toString().padStart(2, '0')}:30`);
+                }
+            }
+            return slots;
+        }
+
+        // Utility Functions
+        function formatPhone(value) {
+            const cleaned = value.replace(/\D/g, '').slice(0, 10);
+            if (cleaned.length <= 3) return cleaned;
+            if (cleaned.length <= 5) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+            if (cleaned.length <= 7) return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5)}`;
+            return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5, 7)}-${cleaned.slice(7, 10)}`;
+        }
+
+        function formatDateToISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function showStatus(type, message) {
+            const alert = document.getElementById('statusAlert');
+            const icon = document.getElementById('statusIcon');
+            const text = document.getElementById('statusMessage');
+
+            alert.className = `status-alert ${type} show`;
+            text.textContent = message;
+
+            const icons = {
+                loading: 'fa-spinner fa-spin',
+                success: 'fa-check-circle',
+                warning: 'fa-exclamation-triangle',
+                error: 'fa-times-circle'
+            };
+
+            icon.className = `fas ${icons[type]}`;
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        function validateForm() {
+            const errors = [];
+
+            if (!formData.cliente.trim()) {
+                errors.push('El nombre es requerido');
+            }
+
+            if (!formData.telefono || formData.telefono.length !== 10) {
+                errors.push('El teléfono debe tener 10 dígitos');
+            }
+
+            if (!formData.correo.trim() || !isValidEmail(formData.correo)) {
+                errors.push('El correo electrónico no es válido');
+            }
+
+            if (!formData.fecha) {
+                errors.push('Debes seleccionar una fecha');
+            }
+
+            if (!formData.hora) {
+                errors.push('Debes seleccionar una hora');
+            }
+
+            return errors;
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        async function handleSubmit() {
+            const errors = validateForm();
+
+            if (errors.length > 0) {
+                showStatus('error', errors[0]);
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            showStatus('loading', 'Enviando tu solicitud de reserva...');
+
+            try {
+                const response = await fetch(WEBHOOK_RESERVA, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cliente: formData.cliente,
+                        telefono: formData.telefono,
+                        correo: formData.correo,
+                        fecha: formData.fecha,
+                        hora: formData.hora,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                // PRIMERO: Verifica el código HTTP
+                if (!response.ok) {
+                    // Si hay error, intenta leer el mensaje
+                    try {
+                        const errorData = await response.json();
+                        showStatus('warning', errorData.mensaje || 'El horario seleccionado no está disponible.');
+                    } catch {
+                        showStatus('warning', 'El horario seleccionado no está disponible.');
+                    }
+                    return;
+                }
+
+                // SEGUNDO: Si todo está bien, lee el resultado
+                const result = await response.json();
+
+                if (result.disponible === true) {
+                    showStatus('success', result.mensaje || '¡Reserva confirmada! Recibirás un correo de confirmación.');
+                    setTimeout(() => {
+                        resetForm();
+                    }, 5000); // Se resetea después de 5 segundos
+                } else {
+                    showStatus('warning', result.mensaje || 'El horario seleccionado no está disponible.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('error', 'Hubo un error al procesar tu reserva. Por favor intenta de nuevo.');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = 'Reservar Cita';
+            }
+        }
+
+        function resetForm() {
+            formData = {
+                cliente: '',
+                telefono: '',
+                correo: '',
+                fecha: '',
+                hora: ''
+            };
+
+            document.getElementById('cliente').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('correo').value = '';
+            document.getElementById('fecha').value = '';
+
+            document.getElementById('selectedDateText').textContent = 'Selecciona una fecha';
+            document.getElementById('calendarTrigger').classList.remove('selected');
+
+            document.getElementById('selectedTime').textContent = 'Primero selecciona fecha';
+            document.getElementById('timeDisplay').classList.add('disabled');
+
+            selectedDate = null;
+        }
+    </script>
+</body>
+
+</html>
